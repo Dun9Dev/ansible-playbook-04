@@ -1,0 +1,9 @@
+---
+clickhouse_version: "24.3.3.44"
+clickhouse_packages:
+  - clickhouse-client
+  - clickhouse-server
+  - clickhouse-common-static
+clickhouse_remove: false
+clickhouse_service_enable: true
+clickhouse_service_ensure: started

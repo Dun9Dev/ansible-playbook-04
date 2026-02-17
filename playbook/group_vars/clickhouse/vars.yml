@@ -1,0 +1,48 @@
+---
+clickhouse_version: "26.1.2.11"
+clickhouse_package:
+  - clickhouse-client
+  - clickhouse-server
+  - clickhouse-common-static
+clickhouse_path_base: "/var/lib"
+clickhouse_logger:
+  level: "information"
+  log: "/var/log/clickhouse-server/clickhouse-server.log"
+  errorlog: "/var/log/clickhouse-server/clickhouse-server.err.log"
+  size: "1000M"
+  count: "10"
+clickhouse_http_port: 8123
+clickhouse_tcp_port: 9000
+clickhouse_mysql_port: 9004
+clickhouse_postgresql_port: 9005
+clickhouse_interserver_http_port: 9009
+clickhouse_ssl_server:
+  enable: false
+  certificate_file: ""
+  private_key_file: ""
+  ca_file: ""
+  dh_params_file: ""
+  verification_mode: "none"
+  load_default_ca_file: false
+  cache_sessions: false
+  disable_protocols: ""
+  prefer_server_ciphers: false
+  ciphers: ""
+  ciphersuites: ""
+  require_tls1_2: false
+  require_tls1_3: false
+clickhouse_ssl_client:
+  enable: false
+  certificate_file: ""
+  private_key_file: ""
+  ca_file: ""
+  dh_params_file: ""
+  verification_mode: "none"
+  load_default_ca_file: false
+  cache_sessions: false
+  disable_protocols: ""
+  prefer_server_ciphers: false
+  ciphers: ""
+  ciphersuites: ""
+  require_tls1_2: false
+  require_tls1_3: false

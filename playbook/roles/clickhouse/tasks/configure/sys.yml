@@ -1,0 +1,111 @@
+---
+- name: Check clickhouse config, data and logs
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ clickhouse_user | default('clickhouse') }}"
+    group: "{{ clickhouse_group | default('clickhouse') }}"
+    mode: "{{ clickhouse_dir_mode | default('u=rwx,g=rx,o=rx') }}"
+  become: true
+  loop:
+    - "{{ clickhouse_path_logdir }}"
+    - "{{ clickhouse_path_configdir }}"
+    - "{{ clickhouse_path_tmp }}"
+    - "{{ clickhouse_path_data }}"
+
+- name: Config | Create config.d folder
+  file:
+    path: "{{ clickhouse_path_configdir }}/config.d"
+    state: directory
+    owner: "{{ clickhouse_user | default('clickhouse') }}"
+    group: "{{ clickhouse_group | default('clickhouse') }}"
+    mode: "u=rwx,g=rx,o=rx"
+  become: true
+
+- name: Config | Create users.d folder
+  file:
+    path: "{{ clickhouse_path_configdir }}/users.d"
+    state: directory
+    owner: "{{ clickhouse_user | default('clickhouse') }}"
+    group: "{{ clickhouse_group | default('clickhouse') }}"
+    mode: "u=rwx,g=rx,o=rx"
+  become: true
+
+- name: Config | Generate system config
+  template:
+    src: config.xml.j2
+    dest: "{{ clickhouse_path_configdir }}/config.d/config.xml"
+    owner: "{{ clickhouse_user | default('clickhouse') }}"
+    group: "{{ clickhouse_group | default('clickhouse') }}"
+    mode: "u=rw,og=r"
+  notify: restart-ch
+  become: true
+
+- name: Config | Remove old config file (if exists)
+  file:
+    path: "{{ clickhouse_path_configdir }}/config.xml"
+    state: absent
+  become: true
+
+- name: Config | Set limits
+  template:
+    src: limits.d/clickhouse.conf.j2
+    dest: "/etc/security/limits.d/clickhouse.conf"
+    owner: root
+    group: root
+    mode: "u=rw,og=r"
+  notify: restart-ch
+  become: true
+  when: clickhouse_limits is defined
+
+- name: Config | Set ulimits service override
+  template:
+    src: systemd/clickhouse.service.d/override.conf.j2
+    dest: "/etc/systemd/system/clickhouse-server.service.d/override.conf"
+    owner: root
+    group: root
+    mode: "u=rw,og=r"
+  notify: restart-ch
+  become: true
+  when: clickhouse_systemd_override is defined
+
+- name: Config | Set ulimits service override (legacy)
+  template:
+    src: systemd/clickhouse.service.d/override.conf.j2
+    dest: "/etc/systemd/system/clickhouse.service.d/override.conf"
+    owner: root
+    group: root
+    mode: "u=rw,og=r"
+  notify: restart-ch
+  become: true
+  when: clickhouse_systemd_override is defined
+
+- name: Config | Generate macros config
+  template:
+    src: macros.j2
+    dest: "{{ clickhouse_path_configdir }}/config.d/macros.xml"
+    owner: "{{ clickhouse_user | default('clickhouse') }}"
+    group: "{{ clickhouse_group | default('clickhouse') }}"
+    mode: "u=rw,og=r"
+  notify: restart-ch
+  become: true
+  when: clickhouse_macros is defined
+
+- name: Config | Generate zookeeper servers config
+  template:
+    src: zookeeper-servers.j2
+    dest: "{{ clickhouse_path_configdir }}/config.d/zookeeper-servers.xml"
+    owner: "{{ clickhouse_user | default('clickhouse') }}"
+    group: "{{ clickhouse_group | default('clickhouse') }}"
+    mode: "u=rw,og=r"
+  notify: restart-ch
+  become: true
+  when: clickhouse_zookeeper_nodes is defined
+
+- name: Config | Fix interserver_http_port and intersever_https_port collision
+  lineinfile:
+    path: "{{ clickhouse_path_configdir }}/config.xml"
+    search_string: '<interserver_http_port>'
+    state: absent
+  become: true
+  when: clickhouse_interserver_https is defined

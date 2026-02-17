@@ -1,0 +1,49 @@
+---
+- name: Install epel-release (for CentOS)
+  ansible.builtin.package:
+    name: epel-release
+    state: present
+  when: ansible_os_family == "RedHat"
+
+- name: Install nginx
+  ansible.builtin.package:
+    name: nginx
+    state: present
+
+- name: Install git
+  ansible.builtin.package:
+    name: git
+    state: present
+
+- name: Clone Lighthouse repository
+  ansible.builtin.git:
+    repo: "{{ lighthouse_repo }}"
+    version: "{{ lighthouse_version }}"
+    dest: "{{ lighthouse_dir }}"
+    force: true
+
+- name: Create nginx config for Lighthouse
+  ansible.builtin.template:
+    src: lighthouse.conf.j2
+    dest: /etc/nginx/sites-available/lighthouse
+    mode: '0644'
+  notify: restart nginx
+
+- name: Enable Lighthouse site
+  ansible.builtin.file:
+    src: /etc/nginx/sites-available/lighthouse
+    dest: /etc/nginx/sites-enabled/lighthouse
+    state: link
+  notify: restart nginx
+
+- name: Remove default nginx site
+  ansible.builtin.file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: restart nginx
+
+- name: Start and enable nginx
+  ansible.builtin.service:
+    name: nginx
+    state: started
+    enabled: true
