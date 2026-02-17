@@ -1,0 +1,20 @@
+---
+dependency:
+  name: galaxy
+  enabled: false
+driver:
+  name: docker
+platforms:
+  - name: ubuntu-22-04
+    image: ubuntu:22.04
+    pre_build_image: true
+  - name: ubuntu-24-04
+    image: ubuntu:24.04
+    pre_build_image: true
+  - name: oraclelinux-8
+    image: oraclelinux:8
+    pre_build_image: true
+provisioner:
+  name: ansible
+verifier:
+  name: ansible

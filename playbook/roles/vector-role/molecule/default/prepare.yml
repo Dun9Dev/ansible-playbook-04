@@ -1,0 +1,38 @@
+---
+- name: Prepare
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Install Python on all hosts
+      raw: |
+        if command -v apt-get; then
+          apt-get update
+          apt-get install -y python3
+        elif command -v dnf; then
+          dnf install -y python3
+        elif command -v yum; then
+          yum install -y python3
+        else
+          echo "No package manager found"
+          exit 1
+        fi
+      register: result
+      changed_when: result.rc != 0
+      ignore_errors: true
+
+    - name: Install curl
+      raw: |
+        if command -v apt-get; then
+          apt-get install -y curl
+        elif command -v dnf; then
+          dnf install -y curl
+        elif command -v yum; then
+          yum install -y curl
+        fi
+      register: result
+      changed_when: result.rc != 0
+      ignore_errors: true
+
+    - name: Gather facts after Python install
+      setup:
+      ignore_errors: true
